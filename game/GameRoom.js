@@ -231,39 +231,39 @@ class GameRoom {
  }
 
   setBag(playerId, cardIds, declaredGood) {
-  const p = this.getPlayer(playerId);
-  if (!p || this.phase !== PHASES.PACKING) return;
+    const p = this.getPlayer(playerId);
+    if (!p || this.phase !== PHASES.PACKING) return;
 
-  const newHand = [];
-  const bag = [];
-  p.hand.forEach(card => {
-    if (cardIds.includes(card.cardId)) {
-      bag.push(card);
-    } else {
-      newHand.push(card);
+      const newHand = [];
+      const bag = [];
+      p.hand.forEach(card => {
+        if (cardIds.includes(card.cardId)) {
+          bag.push(card);
+        } else {
+          newHand.push(card);
+        }
+    });
+
+    p.hand = newHand;
+    p.bag = bag;
+    p.declaredGood = declaredGood;
+    p.declaredCount = bag.length;
+
+    // ✅ NEW: log packing event (smallest possible addition)
+    this.logEvent(`${p.name} packed ${p.declaredCount}× ${prettyGoodName(p.declaredGood)} in their bag.`);
+
+    if (!this._packingDone) this._packingDone = new Set();
+    this._packingDone.add(playerId);
+
+    const sheriff = this.players[this.sheriffIndex];
+    const merchants = this.players.filter(pl => pl.id !== sheriff.id);
+    const allMerchantsPacked = merchants.every(m => this._packingDone.has(m.id));
+
+    if (allMerchantsPacked) {
+      this.phase = PHASES.INSPECTION;
+      this.pendingInspections = new Set(merchants.map(m => m.id));
+      this._packingDone = null;
     }
-  });
-
-  p.hand = newHand;
-  p.bag = bag;
-  p.declaredGood = declaredGood;
-  p.declaredCount = bag.length;
-
-  // ✅ NEW: log packing event (smallest possible addition)
-  this.logEvent(`${p.name} packed ${p.declaredCount}× ${prettyGoodName(p.declaredGood)} in their bag.`);
-
-  if (!this._packingDone) this._packingDone = new Set();
-  this._packingDone.add(playerId);
-
-  const sheriff = this.players[this.sheriffIndex];
-  const merchants = this.players.filter(pl => pl.id !== sheriff.id);
-  const allMerchantsPacked = merchants.every(m => this._packingDone.has(m.id));
-
-  if (allMerchantsPacked) {
-    this.phase = PHASES.INSPECTION;
-    this.pendingInspections = new Set(merchants.map(m => m.id));
-    this._packingDone = null;
-  }
  }
 
 
