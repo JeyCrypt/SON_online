@@ -38,20 +38,27 @@ class GameRoom {
   }
 
   offerBribe(merchantId, amount, message) {
-  const m = this.getPlayer(merchantId);
-  if (!m) return;
-  if (amount <= 0 || amount > m.gold) return;
+    const m = this.getPlayer(merchantId);
+    if (!m) return;
+    if (amount <= 0 || amount > m.gold) return;
 
-  // clear any old result when making a new offer
-  delete this.bribeResults[merchantId];
-
-  this.bribes[merchantId] = {
-    amount,
-    message: message?.slice(0, 200) || ''
-  };
+    // NEW: log the bribe offer before storing it
+    if (message && message.trim()) {
+      this.logEvent(`${m.name} offered a bribe of ${amount}g with message: "${message.trim()}".`);
+    } else {
+      this.logEvent(`${m.name} offered a bribe of ${amount}g.`);
     }
 
-    acceptBribe(sheriffId, merchantId) {
+    // clear any old result when making a new offer
+    delete this.bribeResults[merchantId];
+
+    this.bribes[merchantId] = {
+      amount,
+      message: message?.slice(0, 200) || ''
+    };
+  }
+
+  acceptBribe(sheriffId, merchantId) {
   const sheriff = this.currentSheriff();
   if (!sheriff || sheriff.id !== sheriffId) return;
 
