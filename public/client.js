@@ -550,16 +550,17 @@ function renderInspectionControls(state) {
       container.innerHTML = `
         <p>You backed down from bribing and the Sheriff has resolved your bag.</p>
       `;
+    } else if (!stillPending && myResult && myResult.status === 'passed') {
+      container.innerHTML = `
+        <p>The Sheriff let your bag pass safely without a bribe.</p>
+      `;
     } else if (myBribe) {
       // We have an active bribe waiting on sheriff
       container.innerHTML = `
         <p>You offered a bribe of <strong>${myBribe.amount}g</strong>.
         Waiting for the Sheriff to accept or reject...</p>
       `;
-    } else if (!stillPending && myResult && myResult.status === 'passed') {
-      container.innerHTML = `
-       <p>The Sheriff let your bag pass safely without a bribe.</p>
-      `;
+      
     } else {
       // No active bribe → can make one or back down
       let prefix = `<p>The Sheriff is deciding your fate. Offer a bribe or back down?</p>`;
