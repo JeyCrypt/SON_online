@@ -280,6 +280,10 @@ function renderEventLog(state) {
 
   log.appendChild(list);
   panel.appendChild(log);
+  // 👇 NEW: always scroll to the bottom (latest event)
+  setTimeout(() => {
+    log.scrollTop = log.scrollHeight;
+  }, 0);
 }
 
 
