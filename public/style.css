@@ -261,6 +261,21 @@ button:active {
   margin-bottom: 0.75rem;
 }
 
+#event-log {
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+#event-log h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;

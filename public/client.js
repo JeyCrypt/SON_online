@@ -206,6 +206,7 @@ function renderGame(state) {
   };
 
   renderPlayers(state);
+  renderEventLog(state);
   renderPhase(state);
     if (state.phase === 'end') {
     try {
@@ -251,6 +252,37 @@ function renderPlayers(state) {
     playersList.appendChild(li);
   });
 }
+
+function renderEventLog(state) {
+  const panel = document.getElementById('players-panel');
+  if (!panel) return;
+
+  let existing = document.getElementById('event-log');
+  if (existing) existing.remove();
+
+  const log = document.createElement('div');
+  log.id = 'event-log';
+  log.innerHTML = `<h4>Events</h4>`;
+
+  const list = document.createElement('ul');
+  list.style.listStyle = 'none';
+  list.style.paddingLeft = '0';
+  list.style.margin = '0';
+
+  (state.events || []).forEach(ev => {
+    const li = document.createElement('li');
+    li.style.fontSize = '0.8rem';
+    li.style.opacity = '0.9';
+    li.style.marginBottom = '0.25rem';
+    li.textContent = ev.text;
+    list.appendChild(li);
+  });
+
+  log.appendChild(list);
+  panel.appendChild(log);
+}
+
+
 
 function renderPhase(state) {
   const phase = state.phase;
@@ -560,7 +592,7 @@ function renderInspectionControls(state) {
         <p>You offered a bribe of <strong>${myBribe.amount}g</strong>.
         Waiting for the Sheriff to accept or reject...</p>
       `;
-      
+
     } else {
       // No active bribe → can make one or back down
       let prefix = `<p>The Sheriff is deciding your fate. Offer a bribe or back down?</p>`;

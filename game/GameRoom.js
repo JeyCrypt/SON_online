@@ -33,7 +33,8 @@ class GameRoom {
     this.finalScores = null; // <--- new
     this.bribes = {}; // { merchantId: { amount, message } }
     this.bribeResults = {}; // { merchantId: { status: 'accepted'|'rejected', amount } }
-
+    this.events = [];       // array of { id, text, ts }
+    this.lastEventId = 0;
   }
 
   offerBribe(merchantId, amount, message) {
@@ -73,6 +74,8 @@ class GameRoom {
     amount: bribe.amount
   };
 
+  this.logEvent(`${sheriff.name} accepted a bribe of ${bribe.amount}g from ${m.name}. Bag passed safely.`);
+
   delete this.bribes[merchantId];
   this.pendingInspections.delete(merchantId);
 
@@ -92,6 +95,8 @@ class GameRoom {
     status: 'rejected',
     amount: bribe.amount
   };
+
+  this.logEvent(`${sheriff.name} rejected a bribe of ${bribe.amount}g from ${m.name}.`);
 
   delete this.bribes[merchantId];
     }
@@ -127,6 +132,9 @@ class GameRoom {
         status: 'back_down',
         amount: 0
     };
+
+    this.logEvent(`${m.name} backed down from bribing.`);
+
     }
 
 
@@ -148,6 +156,19 @@ class GameRoom {
       }
     }
   }
+
+  logEvent(text) {
+    this.events.push({
+      id: ++this.lastEventId,
+      text,
+      ts: Date.now()
+    });
+    // keep only last 50 events so it doesn't grow forever
+    if (this.events.length > 50) {
+      this.events.shift();
+    }
+  }
+
 
   getPlayer(id) {
     return this.players.find(p => p.id === id);
@@ -246,12 +267,14 @@ class GameRoom {
 
     if (action === 'inspect') {
       this.inspectBag(sheriff, merchant);
+      this.logEvent(`${sheriff.name} inspected ${merchant.name}'s bag.`);
     } else if (action === 'let_pass') {
       this.letBagPass(merchant);
       this.bribeResults[merchantId] = {
       status: 'passed',
       amount: 0
      };
+     this.logEvent(`${sheriff.name} let ${merchant.name}'s bag pass safely.`);
     }
 
     this.pendingInspections.delete(merchantId);
@@ -307,6 +330,8 @@ class GameRoom {
   endRoundOrGame() {
     this.round += 1;
     this.sheriffIndex = (this.sheriffIndex + 1) % this.players.length;
+
+     this.logEvent(`Round ${this.round} begins. Sheriff is ${this.currentSheriff().name}.`);
 
     if (this.round > this.maxRounds) {
       this.phase = PHASES.END;
@@ -489,7 +514,8 @@ class GameRoom {
       pendingInspections: Array.from(this.pendingInspections || []),
       finalScores: this.finalScores,  // <--- send scores to client when game is over
       bribes: this.bribes,
-      bribeResults: this.bribeResults
+      bribeResults: this.bribeResults,
+      events: this.events.slice(-15)  // last 15 events
     };
   }
 }
