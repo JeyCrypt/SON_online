@@ -248,6 +248,10 @@ class GameRoom {
       this.inspectBag(sheriff, merchant);
     } else if (action === 'let_pass') {
       this.letBagPass(merchant);
+      this.bribeResults[merchantId] = {
+      status: 'passed',
+      amount: 0
+     };
     }
 
     this.pendingInspections.delete(merchantId);

@@ -445,6 +445,8 @@ function renderInspectionControls(state) {
         text += `Resolved after inspection / rejecting bribe.`;
       } else if (result?.status === 'back_down') {
         text += `Backed down from bribing; decision completed.`;
+      } else if (result?.status === 'passed') {
+        text += `Let pass without bribe. Bag passed safely.`;
       } else {
         text += `Resolved.`;
       }
@@ -553,6 +555,10 @@ function renderInspectionControls(state) {
       container.innerHTML = `
         <p>You offered a bribe of <strong>${myBribe.amount}g</strong>.
         Waiting for the Sheriff to accept or reject...</p>
+      `;
+    } else if (!stillPending && myResult && myResult.status === 'passed') {
+      container.innerHTML = `
+       <p>The Sheriff let your bag pass safely without a bribe.</p>
       `;
     } else {
       // No active bribe → can make one or back down
