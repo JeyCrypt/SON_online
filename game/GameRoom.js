@@ -215,43 +215,57 @@ class GameRoom {
   }
 
   finishMarketForPlayer(playerId) {
-    if (!this._marketDone) this._marketDone = new Set();
-    this._marketDone.add(playerId);
-    if (this._marketDone.size === this.players.length) {
-      this.phase = PHASES.PACKING;
-      this._marketDone = null;
-    }
+  if (!this._marketDone) this._marketDone = new Set();
+
+  const p = this.getPlayer(playerId);
+  if (p) {
+    this.logEvent(`${p.name} is done with the market.`);
   }
+
+  this._marketDone.add(playerId);
+
+  if (this._marketDone.size === this.players.length) {
+    this.phase = PHASES.PACKING;
+    this._marketDone = null;
+  }
+ }
 
   setBag(playerId, cardIds, declaredGood) {
-    const p = this.getPlayer(playerId);
-    if (!p || this.phase !== PHASES.PACKING) return;
-    const newHand = [];
-    const bag = [];
-    p.hand.forEach(card => {
-      if (cardIds.includes(card.cardId)) {
-        bag.push(card);
-      } else {
-        newHand.push(card);
-      }
-    });
-    p.hand = newHand;
-    p.bag = bag;
-    p.declaredGood = declaredGood;
-    p.declaredCount = bag.length;
+  const p = this.getPlayer(playerId);
+  if (!p || this.phase !== PHASES.PACKING) return;
 
-    if (!this._packingDone) this._packingDone = new Set();
-    this._packingDone.add(playerId);
-
-    const sheriff = this.players[this.sheriffIndex];
-    const merchants = this.players.filter(pl => pl.id !== sheriff.id);
-    const allMerchantsPacked = merchants.every(m => this._packingDone.has(m.id));
-    if (allMerchantsPacked) {
-      this.phase = PHASES.INSPECTION;
-      this.pendingInspections = new Set(merchants.map(m => m.id));
-      this._packingDone = null;
+  const newHand = [];
+  const bag = [];
+  p.hand.forEach(card => {
+    if (cardIds.includes(card.cardId)) {
+      bag.push(card);
+    } else {
+      newHand.push(card);
     }
+  });
+
+  p.hand = newHand;
+  p.bag = bag;
+  p.declaredGood = declaredGood;
+  p.declaredCount = bag.length;
+
+  // ✅ NEW: log packing event (smallest possible addition)
+  this.logEvent(`${p.name} packed ${p.declaredCount}× ${prettyGoodName(p.declaredGood)} in their bag.`);
+
+  if (!this._packingDone) this._packingDone = new Set();
+  this._packingDone.add(playerId);
+
+  const sheriff = this.players[this.sheriffIndex];
+  const merchants = this.players.filter(pl => pl.id !== sheriff.id);
+  const allMerchantsPacked = merchants.every(m => this._packingDone.has(m.id));
+
+  if (allMerchantsPacked) {
+    this.phase = PHASES.INSPECTION;
+    this.pendingInspections = new Set(merchants.map(m => m.id));
+    this._packingDone = null;
   }
+ }
+
 
   currentSheriff() {
     return this.players[this.sheriffIndex];
@@ -266,8 +280,11 @@ class GameRoom {
     if (!merchant || !this.pendingInspections.has(merchantId)) return;
 
     if (action === 'inspect') {
-      this.inspectBag(sheriff, merchant);
-      this.logEvent(`${sheriff.name} inspected ${merchant.name}'s bag.`);
+    this.inspectBag(sheriff, merchant);
+    } else if (action === 'let_pass') {
+    this.letBagPass(merchant);
+    this.bribeResults[merchantId] = { status: 'passed', amount: 0 };
+    this.logEvent(`${sheriff.name} let ${merchant.name}'s bag pass safely.`);
     } else if (action === 'let_pass') {
       this.letBagPass(merchant);
       this.bribeResults[merchantId] = {
@@ -292,6 +309,10 @@ class GameRoom {
     });
 
     if (honest) {
+
+      // ✅ NEW: event log for truthful merchant
+      this.logEvent(`${sheriff.name} inspected ${merchant.name}'s bag — ${merchant.name} was truthful. The Sheriff paid penalties.`);
+
       let totalPenalty = 0;
       merchant.bag.forEach(card => {
         if (card.type === 'legal') totalPenalty += card.penalty;
@@ -301,6 +322,10 @@ class GameRoom {
       merchant.stall.push(...merchant.bag);
       merchant.bag = [];
     } else {
+
+      // ✅ NEW: event log for catching contraband
+      this.logEvent(`${sheriff.name} inspected ${merchant.name}'s bag and caught contraband!`);
+
       const remainingBag = [];
       merchant.bag.forEach(card => {
         const isIllegal = card.type === 'contraband' || card.name !== friendlyName(merchant.declaredGood);
