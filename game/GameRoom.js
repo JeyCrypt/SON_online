@@ -84,12 +84,16 @@ class GameRoom {
   }
     }
 
-    rejectBribe(sheriffId, merchantId) {
+
+  rejectBribe(sheriffId, merchantId) {
   const sheriff = this.currentSheriff();
   if (!sheriff || sheriff.id !== sheriffId) return;
 
   const bribe = this.bribes[merchantId];
   if (!bribe) return;
+
+  const m = this.getPlayer(merchantId);
+  if (!m) return;
 
   this.bribeResults[merchantId] = {
     status: 'rejected',
@@ -99,7 +103,7 @@ class GameRoom {
   this.logEvent(`${sheriff.name} rejected a bribe of ${bribe.amount}g from ${m.name}.`);
 
   delete this.bribes[merchantId];
-    }
+  }
     
 
     disconnectPlayer(socketId) {
@@ -249,8 +253,9 @@ class GameRoom {
     p.declaredGood = declaredGood;
     p.declaredCount = bag.length;
 
-    // ✅ NEW: log packing event (smallest possible addition)
-    this.logEvent(`${p.name} packed ${p.declaredCount}× ${prettyGoodName(p.declaredGood)} in their bag.`);
+    this.logEvent(
+    `${p.name} packed ${p.declaredCount}× ${friendlyName(p.declaredGood)} in their bag.`
+    );
 
     if (!this._packingDone) this._packingDone = new Set();
     this._packingDone.add(playerId);
