@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sheriff of Nottingham Online</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <div class="screen" id="login-screen">
+      <h1>Sheriff of Nottingham Online</h1>
+      <div class="card">
+        <label>Your name</label>
+        <input id="name-input" placeholder="Enter name" />
+        <div class="buttons-row">
+          <button id="create-room-btn">Create Room</button>
+        </div>
+        <div class="join-row">
+          <input id="room-code-input" placeholder="Room code" maxlength="4" />
+          <button id="join-room-btn">Join Room</button>
+          <button id="reconnect-btn" style="display:none;">Reconnect to last game</button>
+        </div>
+        <p class="hint">Share the 4-letter room code with friends.</p>
+        <div id="login-error" class="error"></div>
+      </div>
+    </div>
+
+    <div class="screen hidden" id="game-screen">
+      <header class="top-bar">
+        <div>
+          <h2>Room: <span id="room-id"></span></h2>
+          <p>Round <span id="round-number"></span> / <span id="max-rounds"></span></p>
+        </div>
+        <div>
+          <p>Sheriff: <span id="sheriff-name"></span></p>
+          <p>You are: <span id="self-name"></span> (<span id="self-role"></span>)</p>
+        </div>
+        <div>
+          <p>Gold: <span id="self-gold"></span></p>
+          <button id="ready-btn" class="hidden">Ready</button>
+          <button id="start-btn" class="hidden">Start Game</button>
+        </div>
+      </header>
+
+      <main class="main-layout">
+        <section class="players-panel">
+          <h3>Players</h3>
+          <ul id="players-list"></ul>
+        </section>
+
+        <section class="center-panel">
+          <div id="phase-banner"></div>
+          <!-- Market / Packing / Inspection controls -->
+          <div id="phase-content"></div>
+
+          <div class="zone">
+            <h3>Your Hand</h3>
+            <div id="hand-cards" class="card-row"></div>
+          </div>
+
+          <div class="zone">
+            <h3>Your Stall</h3>
+            <div id="stall-cards" class="card-row"></div>
+          </div>
+        </section>
+
+        <section class="chat-panel">
+          <h3>Chat</h3>
+          <div id="chat-messages" class="chat-messages"></div>
+          <div class="chat-input">
+            <input id="chat-input" placeholder="Bluff, bribe, or beg..." />
+            <button id="chat-send-btn">Send</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>

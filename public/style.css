@@ -1,0 +1,322 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #1f130f;
+  color: #f4e5c5;
+}
+
+h1, h2, h3 {
+  margin: 0.5rem 0;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.screen {
+  width: 100%;
+  max-width: 1200px;
+  margin: 1.5rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.card {
+  background: #3b2620;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 0.75rem;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: #e0a458;
+  color: #321b0f;
+  font-weight: 600;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.buttons-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.join-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.error {
+  color: #ffb4b4;
+  margin-top: 0.5rem;
+}
+
+.hint {
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+/* Game layout */
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #3b2620;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) 1fr minmax(220px, 260px);
+  gap: 0.75rem;
+  height: calc(100vh - 140px);
+}
+
+.players-panel, .chat-panel, .center-panel {
+  background: #3b2620;
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.players-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+
+.players-panel li {
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.players-panel li.self {
+  background: rgba(255,255,255,0.06);
+}
+
+.players-panel .badge {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: #e0a458;
+  color: #321b0f;
+}
+
+.center-panel {
+  overflow: hidden;
+}
+
+.zone {
+  margin-top: 0.75rem;
+}
+
+.card-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.game-card {
+  position: relative;
+  width: 90px;
+  height: 140px;
+  border-radius: 10px;
+  background: #5a382f;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.35rem 0.4rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transform: translateY(0);
+  transition: transform 0.06s ease, box-shadow 0.06s ease, outline 0.06s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+}
+
+.game-card.selected {
+  outline: 2px solid #e0a458;
+}
+
+/* Legal vs Contraband color accents */
+.game-card.legal {
+  border: 2px solid #8cd47e;
+}
+
+.game-card.contraband {
+  border: 2px solid #e05858;
+}
+
+/* Inner layout */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.card-emoji {
+  font-size: 1.1rem;
+}
+
+.card-title {
+  flex: 1;
+}
+
+.card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: space-between;
+}
+
+.card-type-pill {
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.25);
+}
+
+.game-card.legal .card-type-pill {
+  background: rgba(140, 212, 126, 0.18);
+}
+
+.game-card.contraband .card-type-pill {
+  background: rgba(224, 88, 88, 0.18);
+}
+
+.card-value-pill {
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.35);
+}
+
+.card-penalty-pill {
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.35);
+  font-size: 0.7rem;
+}
+
+.card-type-pill,
+.card-value-pill,
+.card-penalty-pill {
+  font-size: 0.65rem;
+  padding: 0.05rem 0.25rem;
+}
+
+.rounds-config {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.player-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0.75rem;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.25);
+  padding: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.chat-message {
+  margin-bottom: 0.3rem;
+}
+
+.chat-message span.name {
+  font-weight: 600;
+}
+
+.chat-input {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+#phase-banner {
+  margin-bottom: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.25);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    height: auto;
+  }
+}
+
+.scores-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.scores-table th,
+.scores-table td {
+  padding: 0.25rem 0.5rem;
+  text-align: left;
+}
+
+.scores-table thead {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.scores-table tbody tr:nth-child(odd) {
+  background: rgba(0, 0, 0, 0.15);
+}
