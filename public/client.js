@@ -780,8 +780,6 @@ function renderEndScores(state) {
   phaseContent.appendChild(container);
 }
 
-
-
 function renderCards(state) {
   handContainer.innerHTML = '';
   stallContainer.innerHTML = '';
