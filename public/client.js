@@ -493,10 +493,21 @@ function renderInspectionControls(state) {
     }
 
     if (bribe) {
+      const stallCount = (bribe.stallCards || []).length;
+      const bagCount   = (bribe.bagCards   || []).length;
+
+      let goodsText = '';
+      if (stallCount || bagCount) {
+        const parts = [];
+        if (stallCount) parts.push(`${stallCount} good(s) from stall`);
+        if (bagCount)   parts.push(`${bagCount} card(s) from bag`);
+        goodsText = ` + ${parts.join(' + ')}`;
+      }
+
       row.innerHTML = `
-        <strong>${p.name}</strong>${claimText} offers <strong>${bribe.amount}g</strong>
-        ${bribe.message ? `with a message: "${bribe.message}"` : ""}
-      `;
+      <strong>${p.name}</strong>${claimText} offers <strong>${bribe.amount}g</strong>${goodsText}
+      ${bribe.message ? ` with a message: "${bribe.message}"` : ""}
+     `;
       // ... keep your existing Accept / Reject buttons here ...
       // (no change except the claimText insertion)
       const acceptBtn = document.createElement('button');
@@ -612,18 +623,64 @@ function renderInspectionControls(state) {
         `;
       }
 
-            container.innerHTML = `
-        ${prefix}   <!-- this prints your two lines of text -->
-                <p style="font-size:0.85rem; opacity:0.85;">${myClaim}</p>
-        <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+        const stall = state.self.stall || [];
+        const bag   = state.self.bag   || [];
+
+        container.innerHTML = `
+          ${prefix}
+          <p style="font-size:0.85rem; opacity:0.85;">${myClaim}</p>
+
+          <div style="margin-top:0.5rem; font-size:0.85rem;">
+            <p style="margin-bottom:0.25rem;">Optionally include goods in your bribe:</p>
+
+            <div style="margin-left:0.5rem; margin-bottom:0.25rem;">
+              <strong>From Stall:</strong>
+              ${
+                stall.length
+                  ? stall
+                      .map(
+                        c => `
+                  <label style="display:block; opacity:0.9;">
+                    <input type="checkbox"
+                          class="bribe-stall-checkbox"
+                          data-card-id="${c.cardId}">
+                    ${c.name}
+                  </label>`
+                      )
+                      .join('')
+                  : `<p style="opacity:0.7; margin:0;">No goods in your stall.</p>`
+              }
+            </div>
+
+            <div style="margin-left:0.5rem; margin-bottom:0.25rem;">
+              <strong>From Bag:</strong>
+              ${
+                bag.length
+                  ? bag
+                      .map(
+                        c => `
+                  <label style="display:block; opacity:0.9;">
+                    <input type="checkbox"
+                          class="bribe-bag-checkbox"
+                          data-card-id="${c.cardId}">
+                    ${c.name}
+                  </label>`
+                      )
+                      .join('')
+                  : `<p style="opacity:0.7; margin:0;">No cards currently packed in your bag.</p>`
+              }
+            </div>
+          </div>
+
+          <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
             <input id="bribe-amount" type="number" min="1" max="${state.self.gold}"
-                placeholder="Gold..." style="width:80px; padding:0.3rem;">
+              placeholder="Gold..." style="width:80px; padding:0.3rem;">
             <input id="bribe-msg" type="text" placeholder="Optional message..."
-                style="flex:1; padding:0.3rem;">
+              style="flex:1; padding:0.3rem;">
             <button id="offer-bribe-btn">Offer Bribe</button>
             <button id="back-down-btn" type="button">Back Down</button>
-        </div>
-        `;
+          </div>
+          `;
 
       setTimeout(() => {
         const amountEl = document.getElementById('bribe-amount');
@@ -632,25 +689,39 @@ function renderInspectionControls(state) {
         const backDownBtn = document.getElementById('back-down-btn');
 
         if (offerBtn) {
-          offerBtn.onclick = () => {
-            const amount = parseInt(amountEl.value);
-            const message = msgEl.value;
+        offerBtn.onclick = () => {
+          const amount = parseInt(amountEl.value, 10);
+          const message = msgEl.value;
 
-            if (!amount || amount <= 0) {
-              alert('Enter a valid gold amount.');
-              return;
-            }
-            if (amount > state.self.gold) {
-              alert("You don't have that much gold!");
-              return;
-            }
+          if (!amount || amount <= 0) {
+            alert('Enter a valid gold amount.');
+            return;
+          }
+          if (amount > state.self.gold) {
+            alert("You don't have that much gold!");
+            return;
+          }
 
-            socket.emit('offerBribe', {
-              roomId: state.roomId,
-              amount,
-              message
-            });
-          };
+          // collect offered stall cards
+          const stallChecks = Array.from(
+            document.querySelectorAll('.bribe-stall-checkbox:checked')
+          );
+          const stallCardIds = stallChecks.map(cb => cb.getAttribute('data-card-id'));
+
+          // collect offered bag cards
+          const bagChecks = Array.from(
+            document.querySelectorAll('.bribe-bag-checkbox:checked')
+          );
+          const bagCardIds = bagChecks.map(cb => cb.getAttribute('data-card-id'));
+
+          socket.emit('offerBribe', {
+            roomId: state.roomId,
+            amount,
+            message,
+            stallCardIds,
+            bagCardIds
+          });
+        };
         }
 
         if (backDownBtn) {

@@ -37,25 +37,37 @@ class GameRoom {
     this.lastEventId = 0;
   }
 
-  offerBribe(merchantId, amount, message) {
-    const m = this.getPlayer(merchantId);
-    if (!m) return;
-    if (amount <= 0 || amount > m.gold) return;
+  offerBribe(merchantId, amount, message, stallCardIds = [], bagCardIds = []) {
+  const m = this.getPlayer(merchantId);
+  if (!m) return;
+  if (amount <= 0 || amount > m.gold) return;
 
-    // NEW: log the bribe offer before storing it
-    if (message && message.trim()) {
-      this.logEvent(`${m.name} offered a bribe of ${amount}g with message: "${message.trim()}".`);
-    } else {
-      this.logEvent(`${m.name} offered a bribe of ${amount}g.`);
-    }
+  // Clean inputs
+  const stallIds = (stallCardIds || []).map(id => parseInt(id, 10)).filter(x => !isNaN(x));
+  const bagIds   = (bagCardIds   || []).map(id => parseInt(id, 10)).filter(x => !isNaN(x));
 
-    // clear any old result when making a new offer
-    delete this.bribeResults[merchantId];
+  // ---- Build log line ----
+  let logText = `${m.name} offered a bribe of ${amount}g`;
 
-    this.bribes[merchantId] = {
-      amount,
-      message: message?.slice(0, 200) || ''
-    };
+  if (stallIds.length) logText += ` + ${stallIds.length} good(s) from stall`;
+  if (bagIds.length)   logText += ` + ${bagIds.length} card(s) from bag`;
+
+  if (message && message.trim()) {
+    logText += ` with message: "${message.trim()}"`;
+  }
+
+  this.logEvent(logText + '.');
+
+  // ---- Clear old result (your existing logic) ----
+  delete this.bribeResults[merchantId];
+
+  // ---- Store the bribe details (extended version) ----
+  this.bribes[merchantId] = {
+    amount,
+    message: message?.slice(0, 200) || '',
+    stallCards: stallIds,
+    bagCards: bagIds
+  };
   }
 
   acceptBribe(sheriffId, merchantId) {
@@ -71,6 +83,38 @@ class GameRoom {
   // transfer gold
   m.gold -= bribe.amount;
   sheriff.gold += bribe.amount;
+
+  // 🔥 TRANSFER OFFERED GOODS (if any)
+
+  // from stall
+  const stallIds = bribe.stallCards || [];
+  if (stallIds.length) {
+    const remainingStall = [];
+    m.stall.forEach(card => {
+      if (stallIds.includes(card.cardId)) {
+        sheriff.stall.push(card);
+      } else {
+        remainingStall.push(card);
+      }
+    });
+    m.stall = remainingStall;
+  }
+
+  // from bag
+  const bagIds = bribe.bagCards || [];
+  if (bagIds.length) {
+    const remainingBag = [];
+    m.bag.forEach(card => {
+      if (bagIds.includes(card.cardId)) {
+        sheriff.stall.push(card);   // sheriff keeps these
+      } else {
+        remainingBag.push(card);
+      }
+    });
+    m.bag = remainingBag;
+    // keep declaredCount in sync
+    m.declaredCount = m.bag.length;
+  }
 
   // bag passes safely
   this.letBagPass(m);

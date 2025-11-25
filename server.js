@@ -103,14 +103,14 @@ io.on('connection', (socket) => {
     sendStateToRoom(room.id);
   });
 
-  socket.on('offerBribe', ({ roomId, amount, message }) => {
+  socket.on('offerBribe', ({ roomId, amount, message, stallCardIds, bagCardIds }) => {
   const room = gameManager.getRoom(roomId);
   if (!room) return;
-  room.offerBribe(socket.id, amount, message);
+  room.offerBribe(socket.id, amount, message, stallCardIds, bagCardIds);
   sendStateToRoom(roomId);
-    });
+  });
 
-    socket.on('acceptBribe', ({ roomId, merchantId }) => {
+  socket.on('acceptBribe', ({ roomId, merchantId }) => {
   const room = gameManager.getRoom(roomId);
   if (!room) return;
   room.acceptBribe(socket.id, merchantId);
