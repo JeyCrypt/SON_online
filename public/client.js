@@ -493,23 +493,25 @@ function renderInspectionControls(state) {
     }
 
     if (bribe) {
-      const stallCount = (bribe.stallCards || []).length;
-      const bagCount   = (bribe.bagCards   || []).length;
+      const stallNames = bribe.stallSummary || [];
+      const bagNames   = bribe.bagSummary   || [];
 
-      let goodsText = '';
-      if (stallCount || bagCount) {
-        const parts = [];
-        if (stallCount) parts.push(`${stallCount} good(s) from stall`);
-        if (bagCount)   parts.push(`${bagCount} card(s) from bag`);
-        goodsText = ` + ${parts.join(' + ')}`;
+      let goodsDetails = "";
+
+      if (stallNames.length) {
+        goodsDetails += ` + <em>${stallNames.join(', ')}</em> (from stall)`;
+      }
+      if (bagNames.length) {
+        goodsDetails += ` + <em>${bagNames.join(', ')}</em> (from bag)`;
       }
 
       row.innerHTML = `
-      <strong>${p.name}</strong>${claimText} offers <strong>${bribe.amount}g</strong>${goodsText}
-      ${bribe.message ? ` with a message: "${bribe.message}"` : ""}
-     `;
-      // ... keep your existing Accept / Reject buttons here ...
-      // (no change except the claimText insertion)
+        <strong>${p.name}</strong>${claimText} offers 
+        <strong>${bribe.amount}g</strong>
+        ${goodsDetails}
+        ${bribe.message ? ` with a message: "${bribe.message}"` : ""}
+      `;
+
       const acceptBtn = document.createElement('button');
       acceptBtn.textContent = 'Accept';
       acceptBtn.style.marginLeft = '0.5rem';
@@ -640,11 +642,9 @@ function renderInspectionControls(state) {
                   ? stall
                       .map(
                         c => `
-                  <label style="display:block; opacity:0.9;">
-                    <input type="checkbox"
-                          class="bribe-stall-checkbox"
-                          data-card-id="${c.cardId}">
-                    ${c.name}
+                  <label style="display:flex; align-items:center; gap:0.4rem; opacity:0.9; margin-bottom:0.15rem;">
+                    <input type="checkbox" class="bribe-stall-checkbox" data-card-id="${c.cardId}">
+                    <span>${c.name}</span>
                   </label>`
                       )
                       .join('')
@@ -659,11 +659,9 @@ function renderInspectionControls(state) {
                   ? bag
                       .map(
                         c => `
-                  <label style="display:block; opacity:0.9;">
-                    <input type="checkbox"
-                          class="bribe-bag-checkbox"
-                          data-card-id="${c.cardId}">
-                    ${c.name}
+                  <label style="display:flex; align-items:center; gap:0.4rem; opacity:0.9; margin-bottom:0.15rem;">
+                    <input type="checkbox" class="bribe-bag-checkbox" data-card-id="${c.cardId}">
+                    <span>${c.name}</span>
                   </label>`
                       )
                       .join('')

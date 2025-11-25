@@ -38,36 +38,53 @@ class GameRoom {
   }
 
   offerBribe(merchantId, amount, message, stallCardIds = [], bagCardIds = []) {
-  const m = this.getPlayer(merchantId);
-  if (!m) return;
-  if (amount <= 0 || amount > m.gold) return;
+    const m = this.getPlayer(merchantId);
+    if (!m) return;
+    if (amount <= 0 || amount > m.gold) return;
 
-  // Clean inputs
-  const stallIds = (stallCardIds || []).map(id => parseInt(id, 10)).filter(x => !isNaN(x));
-  const bagIds   = (bagCardIds   || []).map(id => parseInt(id, 10)).filter(x => !isNaN(x));
+    // ✅ Keep card IDs as strings (cardId looks like "apple-3")
+    const stallIds = (stallCardIds || []).map(id => String(id));
+    const bagIds   = (bagCardIds   || []).map(id => String(id));
 
-  // ---- Build log line ----
-  let logText = `${m.name} offered a bribe of ${amount}g`;
+    // ✅ Build readable summaries based on current stall / bag
+    const stallNames = [];
+    const bagNames   = [];
 
-  if (stallIds.length) logText += ` + ${stallIds.length} good(s) from stall`;
-  if (bagIds.length)   logText += ` + ${bagIds.length} card(s) from bag`;
+    if (stallIds.length && Array.isArray(m.stall)) {
+      stallIds.forEach(id => {
+        const card = m.stall.find(c => c.cardId === id);
+        if (card) stallNames.push(card.name);
+      });
+    }
 
-  if (message && message.trim()) {
-    logText += ` with message: "${message.trim()}"`;
-  }
+    if (bagIds.length && Array.isArray(m.bag)) {
+      bagIds.forEach(id => {
+        const card = m.bag.find(c => c.cardId === id);
+        if (card) bagNames.push(card.name);
+      });
+    }
 
-  this.logEvent(logText + '.');
+    // ✅ Build log text with specific card names
+    let logText = `${m.name} offered a bribe of ${amount}g`;
+    if (stallNames.length) logText += ` + ${stallNames.join(', ')} from stall`;
+    if (bagNames.length)   logText += ` + ${bagNames.join(', ')} from bag`;
+    if (message && message.trim()) {
+      logText += ` with message: "${message.trim()}"`;
+    }
+    this.logEvent(logText + '.');
 
-  // ---- Clear old result (your existing logic) ----
-  delete this.bribeResults[merchantId];
+    // clear any old result when making a new offer
+    delete this.bribeResults[merchantId];
 
-  // ---- Store the bribe details (extended version) ----
-  this.bribes[merchantId] = {
-    amount,
-    message: message?.slice(0, 200) || '',
-    stallCards: stallIds,
-    bagCards: bagIds
-  };
+    // ✅ Store IDs (for logic) + summaries (for UI)
+    this.bribes[merchantId] = {
+      amount,
+      message: message?.slice(0, 200) || '',
+      stallCards: stallIds,     // still used by acceptBribe
+      bagCards:   bagIds,
+      stallSummary: stallNames, // used by sheriff UI
+      bagSummary:   bagNames
+    };
   }
 
   acceptBribe(sheriffId, merchantId) {
