@@ -669,17 +669,52 @@ function renderInspectionControls(state) {
 
 function renderEndScores(state) {
   const container = document.createElement('div');
+  container.className = 'end-scores';
   container.innerHTML = '<h3>Final Scores</h3>';
 
-  const scores = state.finalScores || [];
+  let scores = state.finalScores || [];
   if (!scores.length) {
-    const p = document.createElement('p');
-    p.textContent = 'No scores available.';
-    container.appendChild(p);
+    container.innerHTML += '<p>No scores available.</p>';
     phaseContent.appendChild(container);
     return;
   }
 
+  // ---- Sort by total descending ----
+  scores = scores.slice().sort((a,b) => b.total - a.total);
+
+  // ---- Winner(s) summary ----
+  const topTotal = scores[0].total;
+  const winners = scores.filter(s => s.total === topTotal);
+  const winnerNames = winners.map(w => w.name).join(', ');
+
+  const winnerLine = document.createElement('p');
+  winnerLine.style.fontWeight = '600';
+  winnerLine.style.marginBottom = '0.25rem';
+
+  if (winners.length === 1) {
+    winnerLine.textContent = `Winner: ${winnerNames} with ${topTotal} points.`;
+  } else {
+    winnerLine.textContent = `Tie! Winners: ${winnerNames} with ${topTotal} points.`;
+  }
+  container.appendChild(winnerLine);
+
+  // ---- Personal placement summary ----
+  const selfId = state.self.id;
+  const me = scores.find(s => s.id === selfId);
+  if (me) {
+    const rank = scores.indexOf(me) + 1;
+    const suffix = rank === 1 ? 'st' :
+                   rank === 2 ? 'nd' :
+                   rank === 3 ? 'rd' : 'th';
+
+    const selfLine = document.createElement('p');
+    selfLine.style.opacity = '0.8';
+    selfLine.style.marginBottom = '0.75rem';
+    selfLine.textContent = `You finished ${rank}${suffix} with ${me.total} points.`;
+    container.appendChild(selfLine);
+  }
+
+  // ---- Table ----
   const table = document.createElement('table');
   table.classList.add('scores-table');
 
@@ -694,15 +729,31 @@ function renderEndScores(state) {
   table.appendChild(thead);
 
   const tbody = document.createElement('tbody');
+
   scores.forEach((s, idx) => {
     const tr = document.createElement('tr');
-    const cells = [idx + 1, s.name, s.gold, s.goodsValue, s.bonus, s.total];
+
+    // highlight winner rows
+    if (s.total === topTotal) {
+      tr.classList.add('winner-row');
+    }
+
+    const cells = [
+      idx + 1,
+      s.name,
+      s.gold,
+      s.goodsValue,
+      s.bonus,
+      s.total
+    ];
+
     cells.forEach(val => {
       const td = document.createElement('td');
       td.textContent = val;
       tr.appendChild(td);
     });
 
+    // keep your existing hover bonus tooltip
     if (s.bonusesDetail && s.bonusesDetail.length) {
       tr.title = s.bonusesDetail.join(', ');
     }
@@ -710,17 +761,25 @@ function renderEndScores(state) {
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
-
   container.appendChild(table);
 
+  // footer hint
   const hint = document.createElement('p');
   hint.style.marginTop = '0.5rem';
   hint.style.fontSize = '0.8rem';
   hint.textContent = 'Hover over a row to see king/queen bonus details.';
   container.appendChild(hint);
 
+  // Back to lobby button
+  const restartBtn = document.createElement('button');
+  restartBtn.textContent = "Back to Lobby";
+  restartBtn.style.marginTop = "1rem";
+  restartBtn.onclick = () => window.location.reload();
+  container.appendChild(restartBtn);
+
   phaseContent.appendChild(container);
 }
+
 
 
 function renderCards(state) {

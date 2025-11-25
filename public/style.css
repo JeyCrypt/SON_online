@@ -275,6 +275,11 @@ button:active {
   opacity: 0.8;
 }
 
+.winner-row {
+  background-color: rgba(255, 215, 0, 0.15); /* soft gold */
+  font-weight: 600;
+}
+
 
 .chat-messages {
   flex: 1;
